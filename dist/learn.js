@@ -1789,7 +1789,9 @@ async function createNewUser() {
 }
 
 async function createRepo() {
-	await saveData();
+	if (repos.length != 0) {
+		await saveData();
+	}
 	const list = document.getElementById('repo-list');
 	if (list.childElementCount > 0) {
 		list.children[list.childElementCount - currentRepo - 1].classList.remove('current-repo');
