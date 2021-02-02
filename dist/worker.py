@@ -44,7 +44,6 @@ def message(evt):
 	global cOut, cErr, __BRYTHON__
 	cOut.cons.value = cErr.cons.value = ""
 	__BRYTHON__.path = [evt.data[0]]
-	__BRYTHON__.imported = {}
 	t0 = time.perf_counter()
 	try:
 		ns = {"__name__":"__main__"}

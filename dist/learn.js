@@ -68,6 +68,7 @@ var brythonOptions = {
 	debug: 1,
 	pythonpath: []
 };
+var imported;
 
 function initialize() {
 	navSection = document.getElementById('nav-section');
@@ -87,6 +88,7 @@ function initialize() {
 	}
 	dragSeparators();
 	brython(brythonOptions);
+	imported = __BRYTHON__.imported;
 }
 
 function initEditor(ed, name, contents) {
@@ -2381,7 +2383,7 @@ async function run(ev) {
 	} else {
 		if (editingItem && (editingItem.code.value !== '')) {
 			__BRYTHON__.path = [defaultPortal + '/' + importPath];
-			__BRYTHON__.imported = {};
+			__BRYTHON__.imported = imported;
 			runButton.classList.add('run');
 			runButton.firstElementChild.innerHTML = 'Stop&nbsp;';
 			runButton.lastElementChild.classList.remove('fa-play');
