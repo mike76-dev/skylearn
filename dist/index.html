@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Learn Coding - Python Virtual Machine</title>
+	<link rel="stylesheet" href="reset.css">
+	<link rel="stylesheet" href="learn.css">
+	<link rel="icon" href="favicon.ico">
+	<script src="https://kit.fontawesome.com/4e707e451a.js" crossorigin="anonymous"></script>
+	<script src="ace/ace.js" type="text/javascript" charset="utf-8"></script>
+	<script src="ace/ext-language_tools.js" type="text/javascript"></script>
+	<script src="main.js"></script>
+	<script src="learn.js"></script>
+	<script src="brython/brython.js"></script>
+	<script src="brython/brython_stdlib.js"></script>
+</head>
+<body onresize="checkResize()">
+	<textarea id="copy-buffer" tabindex="-1"></textarea>
+	<nav class="header">
+		<input type="checkbox" id="toggle-main-nav" onchange="toggleMainNav()">
+		<label for="toggle-main-nav" id="toggle-main-nav-label" class="header-element focusable" tabindex="1" onkeydown="keyDown(event)">
+			<i class="fas fa-bars"></i>
+		</label>
+		<div id="repo-button" class="header-element overflow focusable" tabindex="1" onkeydown="keyDown(event)" onclick="repoData()">
+			<span id="user-text" class="username"></span>&nbsp;
+			<span id="repo-text" class="overflow"></span>&nbsp;&nbsp;
+			<i class="fas fa-angle-down"></i>
+		</div>
+		<div id="run-button" class="header-element focusable" tabindex="1" onkeydown="keyDown(event)" onclick="run(event)">
+			<span class="hide-small">Run&nbsp;</span>
+			<i class="fas fa-play"></i>
+		</div>
+		<div id="logout-button" class="header-element he-right focusable" tabindex="1" onkeydown="keyDown(event)" onclick="logoutClick(event)">
+			<span id="logout-text" class="hide-small">Sign in&nbsp;</span>
+			<span id="logout-icon"><i class="fas fa-sign-in-alt"></i></span>
+		</div>
+		<div id="repo-data" class="repo-data">
+			<label for="repo-name">Name your repository:</label>
+			<input type="text" id="repo-name" onchange="changeRepoName()">
+			<label for="repo-desc">Enter a brief description:</label>
+			<textarea id="repo-desc" rows="3" onchange="changeRepoDesc()"></textarea>
+			<button id="repo-delete" onkeydown="keyDown(event)" onclick="showDeleteRepo()">
+				<i class="far fa-trash-alt"></i> Delete repository
+			</button>
+		</div>
+	</nav>
+	<main class="main">
+		<nav id="side-nav">
+			<div id="files-button" class="nav-button nb-active focusable tooltip" tabindex="1" onkeydown="keyDown(event)" onclick="showFiles()">
+				<i class="far fa-file"></i>
+				<span class="tooltip-text tt-right">Files</span>
+			</div>
+			<div id="code-button" class="nav-button focusable tooltip hide-large" tabindex="1" onkeydown="keyDown(event)" onclick="showCode()">
+				<i class="fas fa-code"></i>
+				<span class="tooltip-text tt-right">Code</span>
+			</div>
+			<div id="console-button" class="nav-button focusable tooltip hide-large" tabindex="1" onkeydown="keyDown(event)" onclick="showConsole()">
+				<i class="fas fa-terminal"></i>
+				<span class="tooltip-text tt-right">Console</span>
+			</div>
+			<div id="settings-button" class="nav-button focusable tooltip" tabindex="1" onkeydown="keyDown(event)" onclick="showSettings()">
+				<i class="fas fa-cog"></i>
+				<span class="tooltip-text tt-right">Settings</span>
+			</div>
+			<div id="help-button" class="nav-button nb-bottom focusable tooltip" tabindex="1" onkeydown="keyDown(event)" onclick="showHelp()">
+				<i class="far fa-question-circle"></i>
+				<span class="tooltip-text tt-right">Help</span>
+			</div>
+		</nav>
+		<section id="nav-section" class="nav-section cut-left">
+			<div id="files-pane" class="nav-pane">
+				<nav class="nav-header">
+					<span>Files</span>
+					<span id="add-file" class="nav-header-button he-right tooltip focusable" tabindex="1" onkeydown="keyDown(event)" onclick="addFile()">
+						<i class="fas fa-file-medical"></i>
+						<span class="tooltip-text tt-bottom">Add file</span>
+					</span>
+					<span id="add-dir" class="nav-header-button tooltip focusable" tabindex="1" onkeydown="keyDown(event)" onclick="addDir()">
+						<i class="fas fa-folder-plus"></i>
+						<span class="tooltip-text tt-bottom">Add folder</span>
+					</span>
+				</nav>
+				<div id="files-list" class="files-list">
+					<ul id="files-tree" class="fa-ul">
+					</ul>
+				</div>
+			</div>
+			<div id="settings-pane" class="nav-pane">
+				<nav class="nav-header">
+					<span>Settings</span>
+				</nav>
+				<div class="files-list padding">
+					<div>
+						<label for="software-tabs">Software tabs
+							<input type="checkbox" id="software-tabs" class="focusable" onchange="setSoftwareTabs(this.checked)">
+							<span class="checkmark" ></span>
+						</label>
+					</div>
+					<div>
+						<label for="atomic-soft-tabs">Atomic tabs
+							<input type="checkbox" id="atomic-soft-tabs" class="focusable" onchange="setAtomicSoftTabs(this.checked)">
+							<span class="checkmark"></span>
+						</label>
+					</div>
+					<div>
+						<label for="tab-size">Tab size</label>
+						<input type="number" id="tab-size" class="focusable" onchange="setTabSize(this.value)" onkeypress="validateNumber(event)">
+					</div>
+					<div>
+						<label for="word-wrap">Word wrapping
+							<input type="checkbox" id="word-wrap" class="focusable" onchange="setSoftWrap(this.checked)">
+							<span class="checkmark"></span>
+						</label>
+					</div>
+					<div>
+						<label for="indented-wrap">Indented wrap
+							<input type="checkbox" id="indented-wrap" class="focusable" onchange="setIndentedWrap(this.checked)">
+							<span class="checkmark"></span>
+						</label>
+					</div>
+					<div>
+						<label for="show-margin">Print margin
+							<input type="checkbox" id="show-margin" class="focusable" onchange="setShowMargin(this.checked)">
+							<span class="checkmark"></span>
+						</label>
+					</div>
+					<div>
+						<label for="margin-offset">Margin</label>
+						<input type="number" id="margin-offset" class="focusable" onchange="setMarginOffset(this.value)" onkeypress="validateNumber(event)">
+					</div>
+					<div>
+						<label for="show-invisibles">Show invisibles
+							<input type="checkbox" id="show-invisibles" class="focusable" onchange="setShowInvisibles(this.checked)">
+							<span class="checkmark"></span>
+						</label>
+					</div>
+					<div>
+						<label for="show-guides">Indent guides
+							<input type="checkbox" id="show-guides" class="focusable" onchange="setShowGuides(this.checked)">
+							<span class="checkmark"></span>
+						</label>
+					</div>
+					<div>
+						<label for="auto-indent">Auto indent
+							<input type="checkbox" id="auto-indent" class="focusable" onchange="setAutoIndent(this.checked)">
+							<span class="checkmark"></span>
+						</label>
+					</div>
+					<div>
+						<label for="add-closing">Match brackets
+							<input type="checkbox" id="add-closing" class="focusable" onchange="setAddClosing(this.checked)">
+							<span class="checkmark"></span>
+						</label>
+					</div>
+					<div>
+						<label for="completion">Code completion
+							<input type="checkbox" id="completion" class="focusable" onchange="setCompletion(this.checked)">
+							<span class="checkmark"></span>
+						</label>
+					</div>
+					<div>
+						<label for="key-bindings">Key bindings</label>
+						<select id="key-bindings" class="focusable" onchange="setKeyBindings(this)">
+							<option>default</option>
+							<option>Vim</option>
+							<option>Emacs</option>
+							<option>Sublime</option>
+							<option>VSCode</option>
+						</select>
+					</div>
+					<div>
+						<label for="dark-mode">Dark mode
+							<input type="checkbox" id="dark-mode" class="focusable" onchange="setDarkMode(this.checked)">
+							<span class="checkmark"></span>
+						</label>
+					</div>
+					<div>
+						<label for="auto-save">Auto-save</label>
+						<select id="auto-save" class="focusable" onchange="setAutoSave(this)">
+							<option>disabled</option>
+							<option>30 seconds</option>
+							<option>1 minute</option>
+							<option>5 minutes</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div id="help-pane" class="nav-pane">
+				<nav class="nav-header">
+					<span>Help</span>
+				</nav>
+				<div class="files-list padding">
+					<p>This is a working beta. It means that, unfortunately, your data still may become lost. Therefore, it is advised to make a backup of your code.</p>
+					<p>If you would like to report an issue, you can find me on <a class="link" href="https://discord.gg/sia" target="_blank">official Sia Discord</a>.</p>
+				</div>
+			</div>
+		</section>
+		<div id="separator1" class="separator hide-small">|</div>
+		<section id="code-section" class="code-section hide-small">
+			<nav class="nav-header">
+				<span id="code-file-name">main.py</span>
+				<span id="save" class="nav-header-button he-right tooltip focusable" tabindex="1" onkeydown="keyDown(event)" onclick="saveData()">
+					<i class="fas fa-save"></i>
+					<span class="tooltip-text tt-bottom">Save</span>
+				</span>
+			</nav>
+			<div id="code-area" class="code-area"></div>
+		</section>
+		<div id="separator2" class="separator hide-small">|</div>
+		<section id="console-section" class="console-section hide-small">
+			<pre id="terminal" onclick="toPrompt()">
+				<textarea id="terminal-input" class="focusable" spellcheck="false" autocomplete="off"></textarea>
+			</pre>
+			<div id="clear-console" class="tooltip focusable" tabindex="1" onkeydown="keyDown(event)" onclick="clearConsole()">
+				<i class="fas fa-backspace"></i>
+				<span class="tooltip-text tt-bottom">Clear</span>
+			</div>
+		</section>
+	</main>
+	<div id="modal" class="modal" onclick="hideMainNav()">
+	</div>
+	<div id="pullout" class="pullout">
+		<div class="pullout-content">
+			<p>My repositories:</p>
+			<ul id="repo-list" class="repo-list">
+			</ul>
+			<button id="new-repo-button" onkeydown="keyDown(event)" onclick="createRepo()">
+				<i class="fas fa-plus"></i> New repository
+			</button>
+		</div>
+		<textarea id="repo-description" rows="4" readonly></textarea>
+		<p id="created" class="date"></p>
+		<p id="last-modified" class="date"></p>
+		<footer class="footer">
+			<p>Copyright &copy; <a class="link" href="https://github.com/mike76-dev/skylearn" target="_blank">mike76</a></p>
+			<p>SkyLearn uses <a class="link" href="https://ace.c9.io/" target="_blank">Ace editor</a></p>
+			<p>and <a class="link" href="https://www.brython.info/" target="_blank">Brython suite</a></p>
+		</footer>
+	</div>
+	<div id="login-screen" class="fade-in">
+		<div id="signin" class="form">
+			<div class="input-block">
+				<h1>Sign in to SkyLearn</h1>
+			</div>
+			<div class="input-block">
+				<label for="username" class="input-label">Username:</label>
+				<input type="text" id="username" tabindex="1" class="input">
+				<p id="username-error" class="error">placeholder</p>
+			</div>
+			<div class="input-block">
+				<label for="password" class="input-label">Password:</label>
+				<input type="password" id="password" tabindex="1" class="input">
+				<p id="password-error" class="error">placeholder</p>
+			</div>
+			<div class="input-block justify">
+				<button id="signin-button" tabindex="1" class="form-button" onclick="signIn()">Sign In</button>
+				<button id="cancel-button" tabindex="1" class="form-button" onclick="hideSignIn()">Cancel</button>
+			</div>
+			<div class="input-block">
+				<p id="new-user" class="link" tabindex="1" onclick="toSignUp()">New user? Create an account.</p>
+			</div>
+			<div class="input-block">
+				<p id="forgot" class="link" tabindex="1" onclick="toRecover()">Forgot username/password?</p>
+			</div>
+		</div>
+		<div id="signup" class="form">
+			<div class="input-block">
+				<h1>Sign up to SkyLearn</h1>
+			</div>
+			<div class="input-block">
+				<label for="username0" class="input-label">Username:</label>
+				<input type="text" id="username0" tabindex="1" class="input">
+				<p id="username-error0" class="error">placeholder</p>
+			</div>
+			<div class="input-block">
+				<label for="password0" class="input-label">Password:</label>
+				<input type="password" id="password0" tabindex="1" class="input">
+				<p id="password-error0" class="error">placeholder</p>
+			</div>
+			<div class="input-block">
+				<label for="repeat-password0" class="input-label">Re-type password:</label>
+				<input type="password" id="repeat-password0" tabindex="1" class="input">
+				<p id="repeat-password-error0" class="error">placeholder</p>
+			</div>
+			<div class="input-block justify">
+				<button id="signup-button" tabindex="1" class="form-button" onclick="signUp()" default>Sign Up</button>
+				<button id="cancel-button0" tabindex="1" class="form-button" onclick="hideSignUp()">Cancel</button>
+			</div>
+			<div class="input-block">
+				<p id="already" class="link" tabindex="1" onclick="toSignIn()">Already have an account?</p>
+			</div>
+			<div class="input-block">
+				<textarea id="seed0" rows="5" tabindex="1" class="seed" readonly>Username and password are used to generate a 24-word seed. This seed can later be used to recover your username and password.</textarea>
+			</div>
+			<div class="input-block justify">
+				<button id="copy-button" tabindex="1" class="form-button" onclick="copySeed()" disabled>Copy Seed</button>
+				<button id="done-button" tabindex="1" class="form-button" onclick="done()" disabled>Done</button>
+			</div>
+		</div>
+		<div id="recover" class="form">
+			<div class="input-block">
+				<h1>Recover Username/Password</h1>
+			</div>
+			<div class="input-block">
+				<label for="seed" class="input-label">Enter your seed:</label>
+				<textarea id="seed" rows="5" tabindex="1" class="seed"></textarea>
+				<p id="seed-error" class="error">placeholder</p>
+			</div>
+			<div class="input-block justify">
+				<button id="recover-button" tabindex="1" class="form-button" onclick="recover()">Recover</button>
+				<button id="cancel-button1" tabindex="1" class="form-button" onclick="hideRecover()">Cancel</button>
+			</div>
+			<div class="input-block">
+				<label class="input-label">Username:</label>
+				<span id="username1" class="credential">placeholder</span>
+			</div>
+			<div class="input-block">
+				<label class="input-label">Password:&nbsp;</label>
+				<span id="password1" class="credential">placeholder</span>
+			</div>
+			<div class="input-block">
+				<button id="tosignin-button" tabindex="1" class="form-button" onclick="toSignIn()">To Sign In</button>
+			</div>
+		</div>
+		<div id="delete" class="form">
+			<div class="input-block">
+				<h1>Confirm Delete</h1>
+			</div>
+			<div class="input-block">
+				<p>Are you sure you want to delete <span id="file-type"></span> <span id="file-name"></span>?</p>
+				<p>This operation cannot be undone.</p>
+			</div>
+			<div class="input-block justify">
+				<button id="yes-button" tabindex="1" class="form-button" onclick="deleteItem()">Yes</button>
+				<button id="no-button" tabindex="1" class="form-button" onclick="hideDelete()">No</button>
+			</div>
+		</div>
+		<div id="delete-repo" class="form">
+			<div class="input-block">
+				<h1>Confirm Delete</h1>
+			</div>
+			<div class="input-block">
+				<p>Are you sure you want to delete the current repository?</p>
+				<p>This operation cannot be undone.</p>
+			</div>
+			<div class="input-block justify">
+				<button id="yes-button0" tabindex="1" class="form-button" onclick="deleteRepo()">Yes</button>
+				<button id="no-button0" tabindex="1" class="form-button" onclick="hideDeleteRepo()">No</button>
+			</div>
+		</div>
+		<div id="wait" class="form">
+			<div class="input-block">
+				<h1>Signing out...</h1>
+			</div>
+		</div>
+	</div>
+	<script type="text/python3" src="learn.py"></script>
+	<script type="text/python3" class="webworker" id="worker" src="worker.py"></script>
+	<script>
+		initialize();
+		login();
+	</script>
+</body>
+</html>
