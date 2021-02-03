@@ -168,7 +168,7 @@ class Interactive:
 			if window.running or window.executing:
 				event.preventDefault()
 				return
-			window.__BRYTHON__.path = [window.defaultPortal + '/' + window.importPath]
+			#window.__BRYTHON__.path = [window.defaultPortal + '/' + window.importPath]
 			sel_start = self.input.selectionStart
 			sel_end = self.input.selectionEnd
 			if sel_end > sel_start:
@@ -212,8 +212,16 @@ class Interactive:
 					elif str(msg) == 'eval() argument must be an expression':
 						window.executing = True
 						self.input.blur()
-						self.runner.send([window.defaultPortal + '/' + window.importPath, currentLine, True])
+						try:
+							exec(currentLine, self.globals, self.locals)
+						except Exception as exc:
+							traceback.print_exc(file=sys.stderr)
+						self.flush()
+						self.insert_prompt()
+						if window.consoleFocus:
+							self.input.focus()
 						self._status = "main"
+						window.executing = False
 					elif str(msg) == 'decorator expects function':
 						self.insert_prompt(True)
 						self._status = "block"
