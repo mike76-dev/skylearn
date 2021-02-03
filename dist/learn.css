@@ -174,7 +174,41 @@ body.dark-theme .repo-data textarea {
 	border: 2px inset #1f1f1f;
 }
 
-.repo-data button {
+#repo-link {
+	display: none;
+}
+
+#repo-copy {
+	margin: 0.25rem;
+	font-size: 0.9rem;
+	padding: 0.5rem;
+	border-radius: 0.5rem;
+	float: left;
+	color: #000000;
+	cursor: pointer;
+	display: none;
+}
+
+body.dark-theme #repo-copy {
+	background-color: #afafaf;
+	border: 2px outset #5f5f5f;
+}
+
+#repo-copy:hover, #repo-copy:focus {
+	background-color: #afafaf;
+	outline: none;
+}
+
+body.dark-theme #repo-copy:hover, body.dark-theme #repo-copy:focus {
+	background-color: #7f7f7f;
+	border: 2px inset #5f5f5f;
+}
+
+#repo-copy:active {
+	color: #ffffff;
+}
+
+#repo-delete {
 	margin: 0.25rem;
 	font-size: 0.9rem;
 	padding: 0.5rem;
@@ -184,22 +218,22 @@ body.dark-theme .repo-data textarea {
 	cursor: pointer;
 }
 
-body.dark-theme .repo-data button {
+body.dark-theme #repo-delete {
 	background-color: #afafaf;
 	border: 2px outset #5f5f5f;
 }
 
-.repo-data button:hover, .repo-data button:focus {
+#repo-delete:hover, #repo-delete:focus {
 	background-color: #afafaf;
 	outline: none;
 }
 
-body.dark-theme .repo-data button:hover, body.dark-theme .repo-data button:focus {
+body.dark-theme #repo-delete:hover, body.dark-theme #repo-delete:focus {
 	background-color: #7f7f7f;
 	border: 2px inset #5f5f5f;
 }
 
-.repo-data button:active {
+#repo-delete:active {
 	color: #ff0000;
 }
 

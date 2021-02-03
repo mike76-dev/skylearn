@@ -36,7 +36,7 @@ var autoIndent = true;
 var addClosing = true;
 var autoCompletion = false;
 var keyBindings = 'default';
-var darkMode = false;
+var darkMode = true;
 var autoSave = 30;
 
 var changed = false;
@@ -64,10 +64,6 @@ const nonEditingKeys = [
 
 var importPath = '';
 var brythonLoaded = false;
-var brythonOptions = {
-	debug: 1,
-	pythonpath: []
-};
 
 function initialize() {
 	navSection = document.getElementById('nav-section');
@@ -105,6 +101,11 @@ function initEditor(ed, name, contents) {
 		name: 'disableSettings',
 		exec: function() {},
 		bindKey: {mac: 'cmd-,', win: 'ctrl-,'}
+	});
+	ed.editor.commands.addCommand({
+		name: 'executeCode',
+		exec: function() {document.getElementById('run-button').click()},
+		bindKey: {mac: 'cmd-enter', win: 'ctrl-enter'}
 	});
 	ed.firstElementChild.onkeydown = function(ev) {
 		if (!nonEditingKeys.includes(ev.key)) {
@@ -1279,6 +1280,8 @@ async function logout() {
 	seed = '';
 	user = 'anonymous';
 	importPath = '';
+	document.getElementById('repo-link').style.display = 'none';
+	document.getElementById('repo-copy').style.display = 'none';
 	createNewUser();
 	document.getElementById('user-text').innerText = user;
 	document.getElementById('repo-text').innerHTML = '&#8942;&nbsp;' + repo;
@@ -1690,6 +1693,9 @@ async function saveData() {
 			const files = listFiles(dir, {});
 			const name = repos[currentRepo].name;
 			importPath = await window.uploadDirectory(files, name);
+			document.getElementById('repo-link').value = defaultPortal + '/' + importPath;
+			document.getElementById('repo-link').style.display = 'unset';
+			document.getElementById('repo-copy').style.display = 'unset';
 			repos[currentRepo].path = importPath;
 			userData.repos = repos;
 			const data = JSON.stringify(userData);
@@ -1737,7 +1743,7 @@ async function loadDataFromStorage() {
 		addClosing = (userData.addClosing !== undefined) ? userData.addClosing : true;
 		autoCompletion = (userData.autoCompletion !== undefined) ? userData.autoCompletion : false;
 		keyBindings = (userData.keyBindings !== undefined) ? userData.keyBindings : 'default';
-		darkMode = (userData.darkMode !== undefined) ? userData.darkMode : false;
+		darkMode = (userData.darkMode !== undefined) ? userData.darkMode : true;
 		autoSave = (userData.autoSave !== undefined) ? userData.autoSave : 30;
 		initSettings();
 		repos = userData.repos;
@@ -1909,13 +1915,16 @@ async function loadData(user) {
 		addClosing = (data.addClosing !== undefined) ? data.addClosing : true;
 		autoCompletion = (data.autoCompletion !== undefined) ? data.autoCompletion : false;
 		keyBindings = (data.keyBindings !== undefined) ? data.keyBindings : 'default';
-		darkMode = (data.darkMode !== undefined) ? data.darkMode : false;
+		darkMode = (data.darkMode !== undefined) ? data.darkMode : true;
 		autoSave = (data.autoSave !== undefined) ? data.autoSave : 30;
 		initSettings();
 		repos = data.repos;
 		currentRepo = data.current;
 		repo = repos[currentRepo].name;
 		importPath = repos[currentRepo].path;
+		document.getElementById('repo-link').value = defaultPortal + '/' + importPath;
+		document.getElementById('repo-link').style.display = 'unset';
+		document.getElementById('repo-copy').style.display = 'unset';
 		let li;
 		const list = document.getElementById('repo-list');
 		list.innerHTML = '';
@@ -1963,37 +1972,63 @@ function select(el, num) {
 
 function initSettings() {
 	document.getElementById('software-tabs').checked = softwareTabs;
+	setSoftwareTabs(softwareTabs, false);
 	document.getElementById('atomic-soft-tabs').checked = atomicSoftTabs;
-	document.getElementById('atomic-soft-tabs').disabled = !softwareTabs;
+	setAtomicSoftTabs(atomicSoftTabs, false);
 	document.getElementById('tab-size').value = tabSize;
+	setTabSize(tabSize, false);
 	document.getElementById('word-wrap').checked = softWrap;
+	setSoftWrap(softWrap, false);
 	document.getElementById('indented-wrap').checked = indentedSoftWrap;
-	document.getElementById('indented-wrap').disabled = !softWrap;
+	setIndentedWrap(indentedSoftWrap, false);
 	document.getElementById('show-margin').checked = showMargin;
+	setShowMargin(showMargin, false);
 	document.getElementById('margin-offset').value = marginOffset;
-	document.getElementById('margin-offset').disabled = !showMargin;
+	setMarginOffset(marginOffset, false);
 	document.getElementById('show-invisibles').checked = showInvisibles;
+	setShowInvisibles(showInvisibles, false);
 	document.getElementById('show-guides').checked = showGuides;
+	setShowGuides(showGuides, false);
 	document.getElementById('auto-indent').checked = autoIndent;
+	setAutoIndent(autoIndent, false);
 	document.getElementById('add-closing').checked = addClosing;
+	setAddClosing(addClosing, false);
 	document.getElementById('completion').checked = autoCompletion;
+	setCompletion(autoCompletion, false);
 	switch (keyBindings) {
 		case 'Vim':
 			select(document.getElementById('key-bindings'), 1);
+			for (let i = 0; i < codeArea.childElementCount; i++) {
+				codeArea.children[i].editor.setKeyboardHandler('ace/keyboard/vim');
+			}
 			break;
 		case 'Emacs':
 			select(document.getElementById('key-bindings'), 2);
+			for (let i = 0; i < codeArea.childElementCount; i++) {
+				codeArea.children[i].editor.setKeyboardHandler('ace/keyboard/emacs');
+			}
 			break;
 		case 'Sublime':
 			select(document.getElementById('key-bindings'), 3);
+			for (let i = 0; i < codeArea.childElementCount; i++) {
+				codeArea.children[i].editor.setKeyboardHandler('ace/keyboard/sublime');
+			}
 			break;
 		case 'VSCode':
 			select(document.getElementById('key-bindings'), 4);
+			for (let i = 0; i < codeArea.childElementCount; i++) {
+				codeArea.children[i].editor.setKeyboardHandler('ace/keyboard/vscode');
+			}
 			break;
 		default:
 			select(document.getElementById('key-bindings'), 0);
+			for (let i = 0; i < codeArea.childElementCount; i++) {
+				codeArea.children[i].editor.setKeyboardHandler(null);
+
+			}
 	}
 	document.getElementById('dark-mode').checked = darkMode;
+	setDarkMode(darkMode, false);
 	switch(autoSave) {
 		case 0:
 			select(document.getElementById('auto-save'), 0);
@@ -2027,25 +2062,29 @@ function processNode(node, action) {
 	}
 }
 
-function setSoftwareTabs(tabs) {
+function setSoftwareTabs(tabs, save = true) {
 	softwareTabs = tabs;
 	tabCharacter = tabs ? ' '.repeat(tabSize) : '\t';
 	for (let i = 0; i < codeArea.childElementCount; i++) {
 		codeArea.children[i].editor.setOption('useSoftTabs', tabs);
 	}
 	document.getElementById('atomic-soft-tabs').disabled = !tabs;
-	saveData();
+	if (save) {
+		saveData();
+	}
 }
 
-function setAtomicSoftTabs(atomic) {
+function setAtomicSoftTabs(atomic, save = true) {
 	atomicSoftTabs = atomic;
 	for (let i = 0; i < codeArea.childElementCount; i++) {
 		codeArea.children[i].editor.setOption('navigateWithinSoftTabs', atomic);
 	}
-	saveData();
+	if (save) {
+		saveData();
+	}
 }
 
-function setTabSize(size) {
+function setTabSize(size, save = true) {
 	if ((size <= 0) || (size > 64)) {
 		document.getElementById('tab-size').value = tabSize;
 		return false;
@@ -2061,19 +2100,23 @@ function setTabSize(size) {
 	}
 	terminalInput.style.tabSize = tabSize;
 	output.style.tabSize = tabSize;
-	saveData();
+	if (save) {
+		saveData();
+	}
 }
 
-function setSoftWrap(wrap) {
+function setSoftWrap(wrap, save = true) {
 	softWrap = wrap;
 	for (let i = 0; i < codeArea.childElementCount; i++) {
 		codeArea.children[i].editor.setOption('wrap', wrap ? 'free' : 'off');
 	}
 	document.getElementById('indented-wrap').disabled = !wrap;
-	saveData();
+	if (save) {
+		saveData();
+	}
 }
 
-function setIndentedWrap(wrap) {
+function setIndentedWrap(wrap, save = true) {
 	indentedSoftWrap = wrap;
 	processNode(tree, function(item) {
 		if (item.children[1].innerText.slice(
@@ -2081,19 +2124,23 @@ function setIndentedWrap(wrap) {
 			item.code.editor.setOption('indentedSoftWrap', wrap);
 		}
 	});
-	saveData();
+	if (save) {
+		saveData();
+	}
 }
 
-function setShowMargin(show) {
+function setShowMargin(show, save = true) {
 	showMargin = show;
 	for (let i = 0; i < codeArea.childElementCount; i++) {
 		codeArea.children[i].editor.setOption('showPrintMargin', show);
 	}
 	document.getElementById('margin-offset').disabled = !show;
-	saveData();
+	if (save) {
+		saveData();
+	}
 }
 
-function setMarginOffset(size) {
+function setMarginOffset(size, save = true) {
 	if ((size <= 0) || (size > 2048)) {
 		document.getElementById('margin-offset').value = marginOffset;
 		return false;
@@ -2102,18 +2149,22 @@ function setMarginOffset(size) {
 	for (let i = 0; i < codeArea.childElementCount; i++) {
 		codeArea.children[i].editor.setOption('printMarginColumn', marginOffset);
 	}
-	saveData();
+	if (save) {
+		saveData();
+	}
 }
 
-function setShowInvisibles(show) {
+function setShowInvisibles(show, save = true) {
 	showInvisibles = show;
 	for (let i = 0; i < codeArea.childElementCount; i++) {
 		codeArea.children[i].editor.setOption('showInvisibles', show);
 	}
-	saveData();
+	if (save) {
+		saveData();
+	}
 }
 
-function setShowGuides(show) {
+function setShowGuides(show, save = true) {
 	showGuides = show;
 	processNode(tree, function(item) {
 		if (item.children[1].innerText.slice(
@@ -2121,10 +2172,12 @@ function setShowGuides(show) {
 			item.code.editor.setOption('displayIndentGuides', show);
 		}
 	});
-	saveData();
+	if (save) {
+		saveData();
+	}
 }
 
-function setAutoIndent(enable) {
+function setAutoIndent(enable, save = true) {
 	autoIndent = enable;
 	processNode(tree, function(item) {
 		if (item.children[1].innerText.slice(
@@ -2132,10 +2185,12 @@ function setAutoIndent(enable) {
 			item.code.editor.setOption('enableAutoIndent', enable);
 		}
 	});
-	saveData();
+	if (save) {
+		saveData();
+	}
 }
 
-function setAddClosing(enable) {
+function setAddClosing(enable, save = true) {
 	addClosing = enable;
 	processNode(tree, function(item) {
 		if (item.children[1].innerText.slice(
@@ -2143,10 +2198,12 @@ function setAddClosing(enable) {
 			item.code.editor.setOption('behavioursEnabled', enable);
 		}
 	});
-	saveData();
+	if (save) {
+		saveData();
+	}
 }
 
-function setCompletion(enable) {
+function setCompletion(enable, save = true) {
 	autoCompletion = enable;
 	processNode(tree, function(item) {
 		if (item.children[1].innerText.slice(
@@ -2154,7 +2211,9 @@ function setCompletion(enable) {
 			item.code.editor.setOption('enableLiveAutocompletion', enable);
 		}
 	});
-	saveData();
+	if (save) {
+		saveData();
+	}
 }
 
 function setKeyBindings(el) {
@@ -2188,7 +2247,7 @@ function setKeyBindings(el) {
 	saveData();
 }
 
-function setDarkMode(dark) {
+function setDarkMode(dark, save = true) {
 	darkMode = dark;
 	if (dark) {
 		document.body.classList.add('dark-theme');
@@ -2202,7 +2261,9 @@ function setDarkMode(dark) {
 			codeArea.children[i].editor.setTheme('ace/theme/chrome');
 		}
 	}
-	saveData();
+	if (save) {
+		saveData();
+	}
 }
 
 function setAutoSave(el) {
@@ -2321,6 +2382,20 @@ function hideDeleteRepo() {
 	restoreTab();
 }
 
+function copyRepoLink() {
+	const copy = document.getElementById('repo-copy');
+	const link = document.getElementById('repo-link');
+	copy.blur();
+	link.select();
+	document.execCommand('copy');
+	setTimeout(() => {
+		copy.innerHTML = '<i class="fas fa-check" style="color: #00af00"></i> Copied';
+	}, 500);
+	setTimeout(() => {
+		copy.innerHTML = 'Copy repo link';
+	}, 1500);
+}
+
 async function deleteRepo() {
 	clearData();
 	const list = document.getElementById('repo-list');
@@ -2380,8 +2455,6 @@ async function run(ev) {
 		stopRunning();
 	} else {
 		if (editingItem && (editingItem.code.value !== '')) {
-			//__BRYTHON__.path = [defaultPortal + '/' + importPath];
-			//__BRYTHON__.imported = {};
 			runButton.classList.add('run');
 			runButton.firstElementChild.innerHTML = 'Stop&nbsp;';
 			runButton.lastElementChild.classList.remove('fa-play');
