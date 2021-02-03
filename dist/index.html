@@ -15,7 +15,7 @@
 	<script src="brython/brython.js"></script>
 	<script src="brython/brython_stdlib.js"></script>
 </head>
-<body onresize="checkResize()">
+<body class="dark-theme" onresize="checkResize()">
 	<textarea id="copy-buffer" tabindex="-1"></textarea>
 	<nav class="header">
 		<input type="checkbox" id="toggle-main-nav" onchange="toggleMainNav()">
@@ -40,8 +40,10 @@
 			<input type="text" id="repo-name" onchange="changeRepoName()">
 			<label for="repo-desc">Enter a brief description:</label>
 			<textarea id="repo-desc" rows="3" onchange="changeRepoDesc()"></textarea>
+			<input type="text" id="repo-link" tabindex="-1" readonly>
+			<button id="repo-copy" onkeydown="keyDown(event)" onclick="copyRepoLink()">Copy repo link</button>
 			<button id="repo-delete" onkeydown="keyDown(event)" onclick="showDeleteRepo()">
-				<i class="far fa-trash-alt"></i> Delete repository
+				<i class="far fa-trash-alt"></i> Delete repo
 			</button>
 		</div>
 	</nav>
@@ -233,9 +235,9 @@
 		<p id="created" class="date"></p>
 		<p id="last-modified" class="date"></p>
 		<footer class="footer">
-			<p>Copyright &copy; <a class="link" href="https://github.com/mike76-dev/skylearn" target="_blank">mike76</a></p>
-			<p>SkyLearn uses <a class="link" href="https://ace.c9.io/" target="_blank">Ace editor</a></p>
-			<p>and <a class="link" href="https://www.brython.info/" target="_blank">Brython suite</a></p>
+			<p>Copyright &copy; <a class="link focusable" href="https://github.com/mike76-dev/skylearn" target="_blank">mike76</a></p>
+			<p>SkyLearn uses <a class="link focusable" href="https://ace.c9.io/" target="_blank">Ace editor</a></p>
+			<p>and <a class="link focusable" href="https://www.brython.info/" target="_blank">Brython suite</a></p>
 		</footer>
 	</div>
 	<div id="login-screen" class="fade-in">
