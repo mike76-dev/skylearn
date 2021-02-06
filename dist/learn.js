@@ -45,6 +45,8 @@ var running = false;
 var executing = false;
 var consoleFocus = false;
 
+var portalList = [];
+
 const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const isMobile = /Android|webOS|iPhone|iPad|iPod|Blackberry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
@@ -83,6 +85,14 @@ function initialize() {
 	}
 	dragSeparators();
 	brython(1);
+	portalList.push({name: 'siasky.net', url: 'https://siasky.net'});
+	option = document.createElement('option');
+	option.innerText = 'siasky.net';
+	document.getElementById('portal-list').appendChild(option);
+	portalList.push({name: 'skyportal.xyz', url: 'https://skyportal.xyz'});
+	option = document.createElement('option');
+	option.innerText = 'skyportal.xyz';
+	document.getElementById('portal-list').appendChild(option);
 }
 
 function initEditor(ed, name, contents) {
@@ -1676,6 +1686,7 @@ async function saveData() {
 	userData.keyBindings = keyBindings;
 	userData.darkMode = darkMode;
 	userData.autoSave = autoSave;
+	userData.defaultPortal = defaultPortal;
 	userData.current = currentRepo;
 	repos[currentRepo].lastModified = new Date();
 	const dir = (user == 'anonymous') ? listDirForSave(tree) : listDir(tree);
@@ -1745,6 +1756,7 @@ async function loadDataFromStorage() {
 		keyBindings = (userData.keyBindings !== undefined) ? userData.keyBindings : 'default';
 		darkMode = (userData.darkMode !== undefined) ? userData.darkMode : true;
 		autoSave = (userData.autoSave !== undefined) ? userData.autoSave : 30;
+		defaultPortal = (userData.defaultPortal !== undefined) ? userData.defaultPortal : defaultPortal;
 		initSettings();
 		repos = userData.repos;
 		currentRepo = userData.current;
@@ -1917,6 +1929,7 @@ async function loadData(user) {
 		keyBindings = (data.keyBindings !== undefined) ? data.keyBindings : 'default';
 		darkMode = (data.darkMode !== undefined) ? data.darkMode : true;
 		autoSave = (data.autoSave !== undefined) ? data.autoSave : 30;
+		defaultPortal = (data.defaultPortal !== undefined) ? data.defaultPortal : defaultPortal;
 		initSettings();
 		repos = data.repos;
 		currentRepo = data.current;
@@ -2043,6 +2056,8 @@ function initSettings() {
 			select(document.getElementById('auto-save'), 3);
 			break;
 	}
+	select(document.getElementById('portal-list'),
+		portalList.findIndex((portal) => {return portal.url == defaultPortal}));
 }
 
 function validateNumber(ev) {
@@ -2282,6 +2297,22 @@ function setAutoSave(el) {
 			break;
 	}
 	saveData();
+}
+
+async function setDefaultPortal(el) {
+	const url = portalList.find((portal) => {return portal.name == el.value}).url;
+	changeDefaultPortal(url);
+	await saveData();
+	const portal = url.slice(8);
+	let host = window.location.hostname;
+	let path = window.location.pathname;
+	if (host.slice(0, 8) == 'skylearn') {
+		host = 'skylearn.hns.' + portal;
+		window.location.replace('https://' + host);
+	} else if (window.location.href.indexOf('skylearn') == -1) {
+		window.location.replace('https://' + portal + path);
+	}
+	document.getElementById('repo-link').value = defaultPortal + '/' + importPath;
 }
 
 function repoData() {
