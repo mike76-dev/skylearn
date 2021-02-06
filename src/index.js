@@ -4,11 +4,16 @@ var buffer = require('buffer');
 var aes = require('aes-js');
 var base64 = require('js-base64');
 
-const client = new skynet.SkynetClient();
+var client = new skynet.SkynetClient();
 window.defaultPortal = skynet.defaultSkynetPortalUrl;
 window.appId = 'SkyLearn-4qAM4dNgUDI2mNF3B82zMno';
 const seedGenFile = 'english.txt';
 const repoGenFile = 'words3.txt';
+
+window.changeDefaultPortal = function(url) {
+	window.defaultPortal = url;
+	client = new skynet.SkynetClient(url);
+}
 
 window.fromRegistry = async function(seed) {
 	const {publicKey, privateKey} = skynet.genKeyPairFromSeed(seed);
