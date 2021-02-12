@@ -350,7 +350,8 @@ window.generateRepoName = async function() {
 window.uploadDirectory = async function(dir, base) {
 	try {
 		const {skylink} = await client.uploadDirectory(dir, base);
-		return skylink.slice(skylink.indexOf(':') + 1);
+		return (skylink.indexOf('//') == -1 ?
+			skylink.slice(skylink.indexOf(':') + 1) : skylink.slice(skylink.indexOf(':') + 3));
 	} catch (error) {
 		console.log(error);
 		return '';
