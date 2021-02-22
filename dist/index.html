@@ -14,6 +14,7 @@
 	<script src="learn.js"></script>
 	<script src="brython/brython.js"></script>
 	<script src="brython/brython_stdlib.js"></script>
+	<script src="https://sky-id.hns.siasky.net/skyid.js"></script>
 </head>
 <body class="dark-theme" onresize="checkResize()">
 	<textarea id="copy-buffer" tabindex="-1"></textarea>
@@ -269,6 +270,12 @@
 			</div>
 			<div class="input-block">
 				<p id="forgot" class="link" tabindex="1" onclick="toRecover()">Forgot username/password?</p>
+			</div>
+			<div class="input-block">
+				<p>Sign in with SkyID</p>
+				<button id="skyid-signin" class="skyid" tabindex="1" onclick="skyIdSignIn()">
+					<img src="SkyID_Logo_128.png">
+				</button>
 			</div>
 		</div>
 		<div id="signup" class="form">
