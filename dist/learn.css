@@ -690,6 +690,32 @@ body.dark-theme .form {
 	text-align: center;
 }
 
+.skyid {
+	position: relative;
+	left: 50%;
+	-webkit-transform: translateX(-50%);
+	-moz-transform: translateX(-50%);
+	-o-transform: translateX(-50%);
+	cursor: pointer;
+	background-color: transparent;
+	border-radius: 0.5rem;
+	margin-top: 0.25rem;
+}
+
+.skyid:hover, .skyid:focus {
+	outline: none;
+	background-color: #cfcfcf;
+}
+
+body.dark-theme .skyid:hover, body.dark-theme .skyid:focus {
+	background-color: #5f5f5f;
+}
+
+.skyid img {
+	width: 4rem;
+	height: 4rem;
+}
+
 #file-name {
 	color: #af0000;
 }

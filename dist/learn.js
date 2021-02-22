@@ -3,6 +3,8 @@ var user = '';
 var repo = '';
 var repos = [];
 var currentRepo = 0;
+var skyIdSignedIn = false;
+var skyid;
 
 var hiddenNav = false;
 var hiddenCode = false;
@@ -93,6 +95,7 @@ function initialize() {
 	option = document.createElement('option');
 	option.innerText = 'skyportal.xyz';
 	document.getElementById('portal-list').appendChild(option);
+	skyid = new SkyID(appId, callback, null);
 }
 
 function initEditor(ed, name, contents) {
@@ -1285,6 +1288,10 @@ async function logout() {
 	}
 	localStorage.removeItem(appId);
 	localStorage.removeItem(appId + '-data');
+	if (skyIdSignedIn) {
+		skyid.sessionDestroy();
+		skyIdSignedIn = false;
+	}
 	clearData();
 	document.getElementById('repo-list').innerHTML = '';
 	seed = '';
@@ -2508,8 +2515,52 @@ function clearConsole() {
 	document.getElementById('clear-console').blur();
 }
 
+async function callback(message) {
+	switch (message) {
+		case 'login_fail':
+			console.log('Login failed');
+			break;
+		case 'login_success':
+			console.log('Login succeeded!');
+			localStorage.removeItem(appId);
+			localStorage.removeItem(appId + '-data');
+			seed = skyid.seed;
+			skyIdSignedIn = true;
+			await skyid.getProfile(async (data, revision) => {
+				user = JSON.parse(data).username;
+				document.getElementById('user-text').innerText = 'retrieving data...';
+				document.getElementById('repo-text').innerHTML = '';
+				await loadData(user);
+				document.getElementById('user-text').innerText = user;
+				document.getElementById('repo-text').innerHTML = '&#8942;&nbsp;' + repo;
+				document.getElementById('logout-text').innerText = 'Sign out\xa0';
+				document.getElementById('logout-icon').innerHTML = '<i class="fas fa-sign-out-alt"></i>';
+				localStorage.setItem(window.appId, seed);
+				document.getElementById('signin-button').disabled = false;
+				document.getElementById('cancel-button').disabled = false;
+				document.getElementById('signin-button').innerText = 'Sign In';
+				document.getElementById('new-user').style.visibility = 'visible';
+				document.getElementById('forgot').style.visibility = 'visible';
+				clearErrors();
+				hideSignIn();
+			});
+			break;
+		case 'destroy':
+			console.log('Logout succeeded!');
+			break;
+		default:
+			console.log(message);
+			break;
+	}
+}
+
+function skyIdSignIn() {
+	document.getElementById('skyid-signin').blur();
+	skyid.sessionStart();
+}
+
 async function login() {
-	seed = localStorage.getItem(window.appId);
+	seed = localStorage.getItem(appId);
 	if (seed) {
 		const {username, password} = await window.recoverPassword(seed);
 		user = username;
@@ -2517,7 +2568,12 @@ async function login() {
 		document.getElementById('logout-text').innerText = 'Sign out\xa0';
 		document.getElementById('logout-icon').innerHTML = '<i class="fas fa-sign-out-alt"></i>';
 	} else {
-		loadDataFromStorage();
+		seed = localStorage.getItem('skyid') ? localStorage.getItem('skyid').seed : null;
+		if (seed) {
+			skyid.sessionStart();
+		} else {
+			loadDataFromStorage();
+		}
 	}
 	if (darkMode) {
 		document.body.classList.add('dark-theme');
