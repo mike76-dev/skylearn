@@ -2535,7 +2535,6 @@ async function callback(message) {
 				document.getElementById('repo-text').innerHTML = '&#8942;&nbsp;' + repo;
 				document.getElementById('logout-text').innerText = 'Sign out\xa0';
 				document.getElementById('logout-icon').innerHTML = '<i class="fas fa-sign-out-alt"></i>';
-				localStorage.setItem(window.appId, seed);
 				document.getElementById('signin-button').disabled = false;
 				document.getElementById('cancel-button').disabled = false;
 				document.getElementById('signin-button').innerText = 'Sign In';
